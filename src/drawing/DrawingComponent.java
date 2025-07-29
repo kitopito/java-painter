@@ -2,6 +2,7 @@ package drawing;
 
 import java.awt.*;
 import java.io.*;
+import core.*;
 
 public interface DrawingComponent extends Cloneable, Serializable {
     void draw(Graphics g);
@@ -20,6 +21,7 @@ public interface DrawingComponent extends Cloneable, Serializable {
     
     boolean getSelected();
     void setSelected(boolean isSelected);
+    ResizeHandle getResizeHandle(int x, int y);
     
     Color getLineColor();
     Color getFillColor();

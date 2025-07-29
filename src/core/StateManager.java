@@ -187,4 +187,8 @@ public class StateManager {
     public void ungroupSelectedDrawings() {
         mediator.ungroupSelectedDrawing();
     }
+    
+    public ResizeHandle getResizeHandle(int x, int y) {
+        return mediator.getResizeHandle(x, y);
+    }
 }

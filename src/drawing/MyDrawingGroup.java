@@ -2,11 +2,15 @@ package drawing;
 
 import java.awt.*;
 import java.util.*;
+import core.*;
 
 public class MyDrawingGroup implements DrawingComponent {
     private Vector<DrawingComponent> children;
+    private Vector<DrawingComponent> initialChildren;
+    private Rectangle initialBounds;
     private boolean isSelected;
     private int x, y, w, h;
+    private final int HANDLE_SIZE = 7;
     
     // private Color groupLineColor;
     // private Color groupFillColor;
@@ -32,6 +36,11 @@ public class MyDrawingGroup implements DrawingComponent {
             addChild(component);
         }
         calculateBounds();
+        initialChildren = cloneChildren(children);
+        initialBounds = new Rectangle(x, y, w, h);
+        for(DrawingComponent child : initialChildren) {
+            child.setSelected(false);
+        }
     }
     
     public void draw(Graphics g) {
@@ -45,7 +54,6 @@ public class MyDrawingGroup implements DrawingComponent {
     }
     
     private void drawGroupSelectionBounds(Graphics g) {
-        final int HANDLE_SIZE = 7;
         g.setColor(Color.BLACK);
         int[][] handles = {
             {x, y}, // top-left
@@ -68,6 +76,9 @@ public class MyDrawingGroup implements DrawingComponent {
         for (DrawingComponent child : children) {
             child.move(dx, dy);
         }
+        for (DrawingComponent child : initialChildren) {
+            child.move(dx, dy);
+        }
         x += dx;
         y += dy;
     }
@@ -76,23 +87,33 @@ public class MyDrawingGroup implements DrawingComponent {
         int dx = x - this.x;
         int dy = y - this.y;
         move(dx, dy);
+        initialBounds.x = x;
+        initialBounds.y = y;
     }
     
     public void setSize(int w, int h) {
-        calculateBounds();
+        int originalX = initialBounds.x;
+        int originalY = initialBounds.y;
+        int originalW = initialBounds.width;
+        int originalH = initialBounds.height;
+        double scaleX = (double) w / originalW;
+        double scaleY = (double) h / originalH;
         
-        // double scaleX = (double) w / this.w;
-        // double scaleY = (double) h / this.h;
-        
-        // for (DrawingComponent child : children) {
-        //     int newX = this.x + (int)((child.getX() - this.x) * scaleX);
-        //     int newY = this.y + (int)((child.getY() - this.y) * scaleY);
-        //     int newW = (int)(child.getW() * scaleX);
-        //     int newH = (int)(child.getH() * scaleY);
+        children = cloneChildren(initialChildren);
+        for (DrawingComponent child : children) {
+            double relativeX = (double)(child.getX() - originalX) / originalW;
+            double relativeY = (double)(child.getY() - originalY) / originalH;
+            double relativeW = (double)child.getW() / originalW;
+            double relativeH = (double)child.getH() / originalH;
             
-        //     child.setLocation(newX, newY);
-        //     child.setSize(newW, newH);
-        // }
+            int newX = originalX + (int)(relativeX * w);
+            int newY = originalY + (int)(relativeY * h);
+            int newW = (int)(child.getW() * scaleX);
+            int newH = (int)(child.getH() * scaleY);
+            
+            child.setLocation(newX, newY);
+            child.setSize(newW, newH);
+        }
         
         this.w = w;
         this.h = h;
@@ -191,11 +212,17 @@ public class MyDrawingGroup implements DrawingComponent {
         for (DrawingComponent child : children) {
             child.setLineColor(lineColor);
         }
+        for (DrawingComponent child : initialChildren) {
+            child.setLineColor(lineColor);
+        }
     }
     
     public void setFillColor(Color fillColor) {
         // this.groupFillColor = fillColor;
         for (DrawingComponent child : children) {
+            child.setFillColor(fillColor);
+        }
+        for (DrawingComponent child : initialChildren) {
             child.setFillColor(fillColor);
         }
     }
@@ -205,11 +232,17 @@ public class MyDrawingGroup implements DrawingComponent {
         for (DrawingComponent child : children) {
             child.setLineWidth(lineWidth);
         }
+        for (DrawingComponent child : initialChildren) {
+            child.setLineWidth(lineWidth);
+        }
     }
     
     public void setIsDashed(boolean isDashed) {
         // this.groupIsDashed = isDashed;
         for (DrawingComponent child : children) {
+            child.setIsDashed(isDashed);
+        }
+        for (DrawingComponent child : initialChildren) {
             child.setIsDashed(isDashed);
         }
     }
@@ -219,6 +252,9 @@ public class MyDrawingGroup implements DrawingComponent {
         for (DrawingComponent child : children) {
             child.setHasShadow(hasShadow);
         }
+        for (DrawingComponent child : initialChildren) {
+            child.setHasShadow(hasShadow);
+        }
     }
     
     public void setDashPattern(float[] dashPattern) {
@@ -226,10 +262,14 @@ public class MyDrawingGroup implements DrawingComponent {
         for (DrawingComponent child : children) {
             child.setDashPattern(dashPattern);
         }
+        for (DrawingComponent child : initialChildren) {
+            child.setDashPattern(dashPattern);
+        }
     }
     
     public MyDrawingGroup clone() {
-        MyDrawingGroup cloned = new MyDrawingGroup();
+        Vector<DrawingComponent> clonedChildren = cloneChildren(children);
+        MyDrawingGroup cloned = new MyDrawingGroup(clonedChildren);
         cloned.isSelected = this.isSelected;
         // cloned.groupLineColor = this.groupLineColor;
         // cloned.groupFillColor = this.groupFillColor;
@@ -237,11 +277,6 @@ public class MyDrawingGroup implements DrawingComponent {
         // cloned.groupIsDashed = this.groupIsDashed;
         // cloned.groupHasShadow = this.groupHasShadow;
         // cloned.groupDashPattern = this.groupDashPattern.clone();
-        
-        for (DrawingComponent child : children) {
-            cloned.addChild(child.clone());
-        }
-        
         return cloned;
     }
     
@@ -277,4 +312,39 @@ public class MyDrawingGroup implements DrawingComponent {
     //     }
     //     return result;
     // }
+
+    public ResizeHandle getResizeHandle(int mouseX, int mouseY) {
+        int hs = HANDLE_SIZE / 2;
+        Rectangle[] handles = {
+            new Rectangle(x - hs, y - hs, HANDLE_SIZE, HANDLE_SIZE), // top-left
+            new Rectangle(x + w / 2 - hs, y - hs, HANDLE_SIZE, HANDLE_SIZE), // top-center
+            new Rectangle(x + w - hs, y - hs, HANDLE_SIZE, HANDLE_SIZE), // top-right
+            new Rectangle(x - hs, y + h / 2 - hs, HANDLE_SIZE, HANDLE_SIZE), // left-center
+            new Rectangle(x + w - hs, y + h / 2 - hs, HANDLE_SIZE, HANDLE_SIZE), // right-center
+            new Rectangle(x - hs, y + h - hs, HANDLE_SIZE, HANDLE_SIZE), // bottom-left
+            new Rectangle(x + w / 2 - hs, y + h - hs, HANDLE_SIZE, HANDLE_SIZE), // bottom-center
+            new Rectangle(x + w - hs, y + h - hs, HANDLE_SIZE, HANDLE_SIZE) // bottom-right
+        };
+
+        ResizeHandle[] handleTypes = {
+            ResizeHandle.TOP_LEFT, ResizeHandle.TOP_CENTER, ResizeHandle.TOP_RIGHT,
+            ResizeHandle.LEFT, ResizeHandle.RIGHT,
+            ResizeHandle.BOTTOM_LEFT, ResizeHandle.BOTTOM_CENTER, ResizeHandle.BOTTOM_RIGHT
+        };
+        
+        for (int i = 0; i < handles.length; i++) {
+            if (handles[i].contains(mouseX, mouseY)) {
+                return handleTypes[i];
+            }
+        }
+        return ResizeHandle.NONE;
+    }
+
+    private Vector<DrawingComponent> cloneChildren(Vector<DrawingComponent> children) {
+        Vector<DrawingComponent> clonedChildren = new Vector<>();
+        for (DrawingComponent child : children) {
+            clonedChildren.add(child.clone());
+        }
+        return clonedChildren;
+    }
 }

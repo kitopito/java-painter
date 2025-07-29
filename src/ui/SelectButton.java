@@ -33,52 +33,81 @@ public class SelectButton extends JToggleButton {
         }
     }
     
+    enum Mode {
+        SELECT, RANGE_SELECT, MOVE, RESIZE
+    }
+    
     class SelectState implements State {
         StateManager stateManager;
         int preMouseX, preMouseY;
         int startX, startY;
         MyDrawing selectionRect = null;
-        boolean isRangeSelection = false;
+        Mode mode = Mode.SELECT;
+        ResizeStrategy resizeStrategy;
+        Vector<DrawingComponent> selectedDrawings = null;
+        Rectangle originalBounds;
         
         public SelectState(StateManager stateManager) {
             this.stateManager = stateManager;
         }
 
         public void mouseDown(int x, int y) {
-            Vector<DrawingComponent> selected = stateManager.selectDrawing(x, y);
-            isRangeSelection = (selected == null || selected.isEmpty());
-            if(isRangeSelection) {
+            startX = x;
+            startY = y;
+            preMouseX = x;
+            preMouseY = y;
+
+            ResizeHandle resizeHandle = stateManager.getResizeHandle(x, y);
+            System.err.println("Resize handle: " + resizeHandle);
+            if (resizeHandle != ResizeHandle.NONE) {
+                mode = Mode.RESIZE;
+                resizeStrategy = new ResizeHandler().getResizeStrategy(resizeHandle);
+                originalBounds = new Rectangle(
+                    selectedDrawings.get(0).getX(), selectedDrawings.get(0).getY(),
+                    selectedDrawings.get(0).getW(), selectedDrawings.get(0).getH()
+                );
+                return;
+            }
+
+            selectedDrawings = stateManager.selectDrawing(x, y);
+            if (selectedDrawings != null && selectedDrawings.isEmpty() == false) {
+                mode = Mode.MOVE;
+                return;
+            }
+
+            mode = Mode.RANGE_SELECT;
+            if(mode == Mode.RANGE_SELECT) {
                 selectionRect = new MyRectangle(x, y, 0, 0);
                 selectionRect.setFillColor(new Color(0, 0, 0, 0));
                 selectionRect.setIsDashed(true);
                 stateManager.addSelectionRect(selectionRect);
             }
-
-            startX = x;
-            startY = y;
-            preMouseX = x;
-            preMouseY = y;
         }
         
         public void mouseUP(int x, int y) {
             if(selectionRect != null) {
-                stateManager.selectDrawing(selectionRect);
+                selectedDrawings = stateManager.selectDrawing(selectionRect);
                 stateManager.removeDrawing(selectionRect);
                 selectionRect = null;
-                isRangeSelection = false;
+                mode = Mode.SELECT;
             }
         }
 
         public void mouseDrag(int x, int y) {
-            if(isRangeSelection) {
+            if(mode == Mode.RANGE_SELECT) {
                 selectionRect.setLocation(startX, startY);
                 selectionRect.setSize(x - startX, y - startY);
             }
-            else {
+            else if(mode == Mode.MOVE) {
                 stateManager.moveSelectedDrawing(x - preMouseX, y - preMouseY);
-                preMouseX = x;
-                preMouseY = y;
             }
+            else if(mode == Mode.RESIZE && resizeStrategy != null) {
+                int dx = x - preMouseX;
+                int dy = y - preMouseY;
+                resizeStrategy.resize(selectedDrawings.get(0), originalBounds, x - startX, y - startY);
+            }
+            preMouseX = x;
+            preMouseY = y;
 
         }
     }

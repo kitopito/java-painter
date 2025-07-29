@@ -41,6 +41,19 @@ public class Myline extends MyDrawing {
         super.draw(g);
     }
     
+    public int getX() {
+        return Math.min(x1, x2);
+    }
+    public int getY() {
+        return Math.min(y1, y2);
+    }
+    public int getW() {
+        return Math.abs(x2 - x1);
+    }
+    public int getH() {
+        return Math.abs(y2 - y1);
+    }
+    
     public int[] getPoints() {
         return new int[]{x1, y1, x2, y2};
     }
@@ -56,13 +69,13 @@ public class Myline extends MyDrawing {
         this.x1 = x;
         this.y1 = y;
         super.setLocation(Math.min(x1, x2), Math.min(y1, y2));
-        setSize(Math.abs(x2 - x1), Math.abs(y2 - y1));
+        super.setSize(Math.abs(x2 - x1), Math.abs(y2 - y1));
     }
     public void setEndPoint(int x, int y) {
         this.x2 = x;
         this.y2 = y;
         super.setLocation(Math.min(x1, x2), Math.min(y1, y2));
-        setSize(Math.abs(x2 - x1), Math.abs(y2 - y1));
+        super.setSize(Math.abs(x2 - x1), Math.abs(y2 - y1));
     }
     public void setLine(int x1, int y1, int x2, int y2) {
         this.x1 = x1;
@@ -70,7 +83,7 @@ public class Myline extends MyDrawing {
         this.x2 = x2;
         this.y2 = y2;
         super.setLocation(Math.min(x1, x2), Math.min(y1, y2));
-        setSize(Math.abs(x2 - x1), Math.abs(y2 - y1));
+        super.setSize(Math.abs(x2 - x1), Math.abs(y2 - y1));
     }
     
     protected Shape createRegion() {
@@ -110,5 +123,34 @@ public class Myline extends MyDrawing {
         int dy = y - Math.min(y1, y2);
         setStartPoint(x1 + dx, y1 + dy);
         setEndPoint(x2 + dx, y2 + dy);
+    }
+    
+    public void setSize(int w, int h) {
+        // if(w < 0) {
+        //     setLocation(getX() + w, getY());
+        //     int tempX = x1;
+        //     setStartPoint(x2, y1);
+        //     setEndPoint(tempX, y2);
+        //     return;
+        // }
+        int minX = Math.min(x1, x2);
+        int minY = Math.min(y1, y2);
+        
+        boolean x1IsLeft = (x1 <= x2);
+        boolean y1IsTop = (y1 <= y2);
+        
+        if (x1IsLeft && y1IsTop) {
+            setStartPoint(minX, minY);
+            setEndPoint(minX + w, minY + h);
+        } else if (!x1IsLeft && y1IsTop) {
+            setStartPoint(minX + w, minY);
+            setEndPoint(minX, minY + h);
+        } else if (x1IsLeft && !y1IsTop) {
+            setStartPoint(minX, minY + h);
+            setEndPoint(minX + w, minY);
+        } else {
+            setStartPoint(minX + w, minY + h);
+            setEndPoint(minX, minY);
+        }
     }
 }

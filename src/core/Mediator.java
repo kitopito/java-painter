@@ -314,4 +314,12 @@ public class Mediator {
             repaint();
         }
     }
+    
+    public ResizeHandle getResizeHandle(int x, int y) {
+        if (selectedDrawing != null && selectedDrawing.size() == 1) {
+            DrawingComponent d = selectedDrawing.get(0);
+            return d.getResizeHandle(x, y);
+        }
+        return ResizeHandle.NONE;
+    }
 }

@@ -3,6 +3,7 @@ package drawing;
 import java.awt.*;
 import java.io.*;
 import util.*;
+import core.*;
 
 public class MyDrawing implements DrawingComponent {
     private int x, y, w, h;
@@ -14,7 +15,7 @@ public class MyDrawing implements DrawingComponent {
     private int multiLineCount = 1;
     private boolean isSelected;
     private Shape region;
-    final int SELECTION_HANDLE_SIZE = 7;
+    final int HANDLE_SIZE = 7;
 
     public MyDrawing() {
         this(0, 0, 40, 40, Color.black, Color.white, 1);
@@ -65,7 +66,7 @@ public class MyDrawing implements DrawingComponent {
                 {x + w, y + h} // bottom-right
             };
             for (int[] p : points) {
-                g.fillRect(p[0] - SELECTION_HANDLE_SIZE / 2, p[1] - SELECTION_HANDLE_SIZE / 2, SELECTION_HANDLE_SIZE, SELECTION_HANDLE_SIZE);
+                g.fillRect(p[0] - HANDLE_SIZE / 2, p[1] - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
             }
         }
     }
@@ -201,5 +202,37 @@ public class MyDrawing implements DrawingComponent {
     }
     protected Shape createRegion() {
         return new Rectangle(x, y, w, h);
+    }
+
+    public ResizeHandle getResizeHandle(int mouseX, int mouseY) {
+        int x = this.x - lineWidth / 2;
+        int y = this.y - lineWidth / 2;
+        int w = this.w + lineWidth;
+        int h = this.h + lineWidth;
+
+        int hs = HANDLE_SIZE / 2;
+        Rectangle[] handles = {
+            new Rectangle(x - hs, y - hs, HANDLE_SIZE, HANDLE_SIZE), // top-left
+            new Rectangle(x + w / 2 - hs, y - hs, HANDLE_SIZE, HANDLE_SIZE), // top-center
+            new Rectangle(x + w - hs, y - hs, HANDLE_SIZE, HANDLE_SIZE), // top-right
+            new Rectangle(x - hs, y + h / 2 - hs, HANDLE_SIZE, HANDLE_SIZE), // left-center
+            new Rectangle(x + w - hs, y + h / 2 - hs, HANDLE_SIZE, HANDLE_SIZE), // right-center
+            new Rectangle(x - hs, y + h - hs, HANDLE_SIZE, HANDLE_SIZE), // bottom-left
+            new Rectangle(x + w / 2 - hs, y + h - hs, HANDLE_SIZE, HANDLE_SIZE), // bottom-center
+            new Rectangle(x + w - hs, y + h - hs, HANDLE_SIZE, HANDLE_SIZE) // bottom-right
+        };
+
+        ResizeHandle[] handleTypes = {
+            ResizeHandle.TOP_LEFT, ResizeHandle.TOP_CENTER, ResizeHandle.TOP_RIGHT,
+            ResizeHandle.LEFT, ResizeHandle.RIGHT,
+            ResizeHandle.BOTTOM_LEFT, ResizeHandle.BOTTOM_CENTER, ResizeHandle.BOTTOM_RIGHT
+        };
+        
+        for (int i = 0; i < handles.length; i++) {
+            if (handles[i].contains(mouseX, mouseY)) {
+                return handleTypes[i];
+            }
+        }
+        return ResizeHandle.NONE;
     }
 }
