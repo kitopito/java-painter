@@ -2,6 +2,8 @@ package core;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.*;
+
 import javax.swing.*;
 import drawing.*;
 import ui.*;
@@ -43,6 +45,8 @@ public class MyApplication extends JFrame {
         shapePanel.add(henButton);
         LineButton lineButton = new LineButton(stateManager, propertyPanel);
         shapePanel.add(lineButton);
+        TextButton textButton = new TextButton(stateManager, propertyPanel);
+        shapePanel.add(textButton);
         SelectButton selectButton = new SelectButton(stateManager, propertyPanel);
         shapePanel.add(selectButton);
         
@@ -51,6 +55,7 @@ public class MyApplication extends JFrame {
         shapeButtonGroup.add(ovalButton);
         shapeButtonGroup.add(henButton);
         shapeButtonGroup.add(lineButton);
+        shapeButtonGroup.add(textButton);
         shapeButtonGroup.add(selectButton);
 
         //JPanel linePanel = new JPanel();
@@ -90,23 +95,9 @@ public class MyApplication extends JFrame {
             }
         });
 
-        canvas.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                canvas.requestFocusInWindow();
-                stateManager.mouseDown(e.getX(), e.getY());
-            }
-            public void mouseReleased(MouseEvent e) {
-                System.out.println("mouse released");
-                canvas.requestFocusInWindow();
-                stateManager.mouseUP(e.getX(), e.getY());
-            }
-        });
-        canvas.addMouseMotionListener(new MouseMotionAdapter() {
-            public void mouseDragged(MouseEvent e) {
-                canvas.requestFocusInWindow();
-                stateManager.mouseDrag(e.getX(), e.getY());
-            }
-        });
+        canvas.addMouseListener(new CanvasMouseListener(canvas, stateManager));
+
+        canvas.addMouseMotionListener(new CanvasMouseMotionListener(canvas, stateManager));
         canvas.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_DELETE) {
@@ -121,6 +112,10 @@ public class MyApplication extends JFrame {
                 if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_V) {
                     stateManager.pasteKeyPressed();
                 }
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    canvas.getZoomManager().resetZoom();
+                    canvas.repaint();
+                }
             }
         });
 
@@ -130,6 +125,83 @@ public class MyApplication extends JFrame {
                         System.exit(1);
                     }
                 });
+    }
+    
+    class CanvasMouseListener extends MouseAdapter {
+        private MyCanvas canvas;
+        private StateManager stateManager;
+        private ZoomManager zoomManager;
+        private int logicalX, logicalY;
+
+        CanvasMouseListener(MyCanvas canvas, StateManager stateManager) {
+            this.canvas = canvas;
+            this.stateManager = stateManager;
+            this.zoomManager = canvas.getZoomManager();
+        }
+
+        public void mousePressed(MouseEvent e) {
+            canvas.requestFocusInWindow();
+            if(SwingUtilities.isRightMouseButton(e) == false) {
+                stateManager.mouseDown(e.getX(), e.getY());
+            } else {
+                MyRectangle zoomRect = zoomManager.getZoomRect();
+                zoomRect.setLocation(e.getX(), e.getY());
+                zoomRect.setSize(0, 0);
+                zoomManager.setDragStart(e.getX(), e.getY());
+                canvas.getMediator().addDrawing(zoomRect);
+                canvas.repaint();
+            }
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            canvas.requestFocusInWindow();
+            if(SwingUtilities.isRightMouseButton(e) == false) {
+                System.out.println("mouse released");
+                stateManager.mouseUP(e.getX(), e.getY());
+            } else {
+                MyRectangle zoomRect = zoomManager.getZoomRect();
+                System.out.println("Zoom rectangle color: " + zoomRect.getFillColor());
+                canvas.getMediator().removeDrawing(zoomRect);
+                zoomManager.zoomToRectangle(canvas.getWidth(), canvas.getHeight());
+                canvas.repaint();
+                System.out.println("Zoomed to rectangle: " + zoomRect.getX() + ", " + zoomRect.getY() + ", " + zoomRect.getW() + ", " + zoomRect.getH());
+            }
+        }
+        
+        private void calcLogicalCoordinates(MouseEvent e) {
+            AffineTransform transform = zoomManager.getTransform();
+            try {
+                Point2D logicalPoint = transform.inverseTransform(new Point2D.Double(e.getX(), e.getY()), null);
+                logicalX = (int) logicalPoint.getX();
+                logicalY = (int) logicalPoint.getY();
+            } catch (NoninvertibleTransformException ex) {
+                System.err.println("Error calculating logical coordinates: " + ex.getMessage());
+            }
+        }
+    }
+    
+    class CanvasMouseMotionListener extends MouseMotionAdapter {
+        private MyCanvas canvas;
+        private StateManager stateManager;
+        private ZoomManager zoomManager;
+
+        CanvasMouseMotionListener(MyCanvas canvas, StateManager stateManager) {
+            this.canvas = canvas;
+            this.stateManager = stateManager;
+            this.zoomManager = canvas.getZoomManager();
+        }
+
+        public void mouseDragged(MouseEvent e) {
+            canvas.requestFocusInWindow();
+            if(SwingUtilities.isRightMouseButton(e) == false) {
+                stateManager.mouseDrag(e.getX(), e.getY());
+            } else {
+                MyRectangle zoomRect = zoomManager.getZoomRect();
+                zoomRect.setLocation(zoomManager.getDragStartX(), zoomManager.getDragStartY());
+                zoomRect.setSize(e.getX() - zoomRect.getX(), e.getY() - zoomRect.getY());
+                canvas.repaint();
+            }
+        }
     }
 
     public static void main(String[] args) {

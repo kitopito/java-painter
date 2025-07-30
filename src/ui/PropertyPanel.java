@@ -2,6 +2,9 @@ package ui;
 
 import java.awt.*;
 import javax.swing.*;
+
+import org.w3c.dom.Text;
+
 import java.util.Vector;
 import core.*;
 
@@ -15,19 +18,22 @@ public class PropertyPanel extends JPanel {
     public static final String HEN_MODE = "HendecagonalMode";
     public static final String LINE_MODE = "LineMode";
     public static final String SELECT_MODE = "SelectMode";
+    public static final String TEXT_MODE = "TextMode";
 
     JPanel rectPanel = new JPanel();
     JPanel ovalPanel = new JPanel();
     JPanel henPanel = new JPanel();
     JPanel linePanel = new JPanel();
     JPanel selectPanel = new JPanel();
-    
+    JPanel textPanel = new JPanel();
+
     ShadowCheckBox shadowCheckBox;
     ColorChooserButton fillColorChooser;
     ColorChooserButton lineColorChooser;
     DashCheckBox dashCheckBox;
     DashList dashList;
     LineWidthSpinner lineWidthSpinner;
+    TextSizeSpinner textSizeSpinner;
 
     public PropertyPanel(StateManager stateManager) {
         cardLayout = new CardLayout();
@@ -40,13 +46,15 @@ public class PropertyPanel extends JPanel {
         dashCheckBox = new DashCheckBox(stateManager);
         dashList = new DashList(stateManager);
         lineWidthSpinner = new LineWidthSpinner(stateManager);
-        
+        textSizeSpinner = new TextSizeSpinner(stateManager);
+
         createRectPanel();
         this.add(rectPanel, RECT_MODE);
         this.add(ovalPanel, OVAL_MODE);
         this.add(henPanel, HEN_MODE);
         this.add(linePanel, LINE_MODE);
         this.add(selectPanel, SELECT_MODE);
+        this.add(textPanel, TEXT_MODE);
     }
     
     public void setMode(String mode) {
@@ -66,6 +74,9 @@ public class PropertyPanel extends JPanel {
                 break;
             case SELECT_MODE:
                 createSelectPanel();
+                break;
+            case TEXT_MODE:
+                createTextPanel();
                 break;
             default:
                 break;
@@ -132,5 +143,15 @@ public class PropertyPanel extends JPanel {
         selectPanel.add(lineWidthSpinner);
         selectPanel.add(new GroupButton(stateManager));
         selectPanel.add(new UngroupButton(stateManager));
+        selectPanel.add(new JLabel("Text Size:"));
+        selectPanel.add(textSizeSpinner);
+    }
+    
+    public void createTextPanel() {
+        textPanel.removeAll();
+        textPanel.setLayout(new FlowLayout());
+        textPanel.add(lineColorChooser);
+        textPanel.add(new JLabel("Text Size:"));
+        textPanel.add(textSizeSpinner);
     }
 }

@@ -19,10 +19,16 @@ public class StateManager {
     private Color fillColor = Color.BLACK;
     private Color lineColor = Color.BLACK;
     private List<SelectionListener> selectionListeners = new ArrayList<>();
+    private int textSize = 12;
+    private Font textFont = new Font("SansSerif", Font.PLAIN, textSize);
 
     public StateManager(MyCanvas canvas) {
         this.mediator = canvas.getMediator();
         this.currentState = null;
+    }
+    
+    public Mediator getMediator() {
+        return mediator;
     }
 
     public void setState(State state) {
@@ -75,6 +81,11 @@ public class StateManager {
         d.setLineColor(lineColor);
         if (isDashed) {
             d.setDashPattern(dashPattern);
+        }
+        if (d instanceof MyText) {
+            MyText myText = (MyText) d;
+            myText.setFont(textFont);
+            myText.setTextSize(textSize);
         }
         mediator.addDrawing(d);
     }
@@ -164,6 +175,25 @@ public class StateManager {
     public void setLineColor(Color color) {
         this.lineColor = color;
         mediator.setLineColor(color);
+    }
+    
+    public int getTextSize() {
+        return textSize;
+    }
+    public void setTextSize(int size) {
+        if (size > 0) {
+            this.textSize = size;
+            this.textFont = this.textFont.deriveFont((float) size);
+            mediator.setTextSize(size);
+        }
+    }
+
+    public Font getTextFont() {
+        return textFont;
+    }
+    public void setTextFont(Font font) {
+        this.textFont = font.deriveFont(textSize);
+        mediator.setTextFont(this.textFont);
     }
     
     public void addSelectionListener(SelectionListener listener) {

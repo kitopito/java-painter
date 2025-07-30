@@ -27,6 +27,7 @@ public class Mediator {
         // d.setFillColor(color);
         // d.setLineColor(color);
         //setSelectedDrawing(d);
+        repaint();
     }
     
     public void removeDrawing(DrawingComponent d) {
@@ -192,6 +193,26 @@ public class Mediator {
             while (e.hasMoreElements()) {
                 DrawingComponent d = e.nextElement();
                 d.setHasShadow(hasShadow);
+            }
+        }
+        canvas.repaint();
+    }
+    public void setTextSize(int size) {
+        if (selectedDrawing != null) {
+            for(DrawingComponent d : selectedDrawing) {
+                if (d instanceof MyText) {
+                    ((MyText)d).setTextSize(size);
+                }
+            }
+        }
+        canvas.repaint();
+    }
+    public void setTextFont(Font font) {
+        if (selectedDrawing != null) {
+            for(DrawingComponent d : selectedDrawing) {
+                if (d instanceof MyText) {
+                    ((MyText)d).setFont(font);
+                }
             }
         }
         canvas.repaint();
