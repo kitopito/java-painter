@@ -22,6 +22,13 @@ public interface DrawingComponent extends Cloneable, Serializable {
     boolean getSelected();
     void setSelected(boolean isSelected);
     ResizeHandle getResizeHandle(int x, int y);
+    boolean isRotateHandle(int x, int y);
+    
+    // 回転関連のメソッド
+    double getRotationAngle();
+    void setRotationAngle(double angle);
+    Point getRotationCenter();
+    void setRotationCenter(Point center);
     
     Color getLineColor();
     Color getFillColor();

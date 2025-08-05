@@ -1,6 +1,7 @@
 package drawing;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -74,6 +75,9 @@ public class MyImage extends MyDrawing {
         int h = getH();
         
         Graphics2D g2 = (Graphics2D) g;
+        AffineTransform originalTransform = g2.getTransform();
+        Point center = new Point(x + w/2, y + h/2);
+        g2.rotate(getRotationAngle(), center.x, center.y);
         
         // 影の描画
         if (getHasShadow()) {
@@ -94,17 +98,7 @@ public class MyImage extends MyDrawing {
             g2.drawString("画像なし", x + 5, y + 15);
         }
         
-        // 枠線の描画
-        if (getLineWidth() > 0) {
-            if (getIsDashed()) {
-                g2.setStroke(new MyDashStroke(getLineWidth(), getDashPattern()));
-            } else {
-                g2.setStroke(new BasicStroke(getLineWidth()));
-            }
-            g2.setColor(getLineColor());
-            g2.drawRect(x, y, w, h);
-        }
-        
+        g2.setTransform(originalTransform);
         super.draw(g);
     }
     

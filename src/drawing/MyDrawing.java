@@ -4,6 +4,7 @@ import java.awt.*;
 import java.io.*;
 import util.*;
 import core.*;
+import java.awt.geom.*;
 
 public class MyDrawing implements DrawingComponent {
     private int x, y, w, h;
@@ -15,7 +16,11 @@ public class MyDrawing implements DrawingComponent {
     private int multiLineCount = 1;
     private boolean isSelected;
     private Shape region;
-    final int HANDLE_SIZE = 7;
+    final int HANDLE_SIZE = 10; // ハンドルサイズを大きく
+    
+    // 回転関連の変数
+    private double rotationAngle = 0.0;
+    private Point rotationCenter = null;
 
     public MyDrawing() {
         this(0, 0, 40, 40, Color.black, Color.white, 1);
@@ -44,16 +49,28 @@ public class MyDrawing implements DrawingComponent {
         }
         
         setRegion(createRegion());
+        setRotationCenter();
     }
 
     public void draw(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        AffineTransform originalTransform = g2.getTransform();
+        
+        Point center = rotationCenter != null ? rotationCenter : new Point(x + w/2, y + h/2);
+        g2.rotate(rotationAngle, center.x, center.y);
+        drawHandles(g2);
+        
+        g2.setTransform(originalTransform);
+    }
+    
+    protected void drawHandles(Graphics2D g2) {
         int x = this.x - lineWidth / 2;
         int y = this.y - lineWidth / 2;
         int w = this.w + lineWidth;
         int h = this.h + lineWidth;
 
         if(isSelected) {
-            g.setColor(Color.black);
+            g2.setColor(Color.black);
             // 8 handles: 4 corners and 4 sides' centers
             int[][] points = {
                 {x, y}, // top-left
@@ -66,8 +83,21 @@ public class MyDrawing implements DrawingComponent {
                 {x + w, y + h} // bottom-right
             };
             for (int[] p : points) {
-                g.fillRect(p[0] - HANDLE_SIZE / 2, p[1] - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
+                g2.fillRect(p[0] - HANDLE_SIZE / 2, p[1] - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
             }
+            
+            int rotateHandleX = x + w / 2;
+            int rotateHandleY = y - 25;
+            
+            // 回転ハンドルへの線
+            g2.setColor(Color.blue);
+            g2.drawLine(x + w / 2, y, rotateHandleX, rotateHandleY);
+            
+            // 回転ハンドル
+            g2.setColor(Color.blue);
+            g2.fillOval(rotateHandleX - HANDLE_SIZE / 2, rotateHandleY - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
+            g2.setColor(Color.white);
+            g2.drawOval(rotateHandleX - HANDLE_SIZE / 2, rotateHandleY - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
         }
     }
     
@@ -89,6 +119,7 @@ public class MyDrawing implements DrawingComponent {
         this.x = x;
         this.y = y;
         setRegion(createRegion());
+        setRotationCenter();
     }
 
     public void setSize(int w, int h) {
@@ -103,6 +134,7 @@ public class MyDrawing implements DrawingComponent {
             this.h = -h;
         }
         setRegion(createRegion());
+        setRotationCenter();
     }
 
     public int getX() {
@@ -203,6 +235,10 @@ public class MyDrawing implements DrawingComponent {
     protected Shape createRegion() {
         return new Rectangle(x, y, w, h);
     }
+    
+    protected void setRotationCenter() {
+        rotationCenter = new Point(x + w / 2, y + h / 2);
+    }
 
     public ResizeHandle getResizeHandle(int mouseX, int mouseY) {
         int x = this.x - lineWidth / 2;
@@ -234,5 +270,44 @@ public class MyDrawing implements DrawingComponent {
             }
         }
         return ResizeHandle.NONE;
+    }
+    
+    public boolean isRotateHandle(int mouseX, int mouseY) {
+        if (!isSelected) return false;
+        
+        int x = this.x - lineWidth / 2;
+        int y = this.y - lineWidth / 2;
+        int w = this.w + lineWidth;
+        int h = this.h + lineWidth;
+        
+        int originalHandleX = x + w / 2;
+        int originalHandleY = y - 25;
+        
+        Point center = rotationCenter != null ? rotationCenter : new Point(x + w/2, y + h/2);
+        
+        double rotatedHandleX = center.x + (originalHandleX - center.x) * Math.cos(rotationAngle) - (originalHandleY - center.y) * Math.sin(rotationAngle);
+        double rotatedHandleY = center.y + (originalHandleX - center.x) * Math.sin(rotationAngle) + (originalHandleY - center.y) * Math.cos(rotationAngle);
+        
+        double dx = mouseX - rotatedHandleX;
+        double dy = mouseY - rotatedHandleY;
+        double distance = Math.sqrt(dx * dx + dy * dy);
+        
+        return distance <= HANDLE_SIZE / 2;
+    }
+    
+    public double getRotationAngle() {
+        return rotationAngle;
+    }
+    
+    public void setRotationAngle(double angle) {
+        this.rotationAngle = angle;
+    }
+    
+    public Point getRotationCenter() {
+        return rotationCenter;
+    }
+    
+    public void setRotationCenter(Point center) {
+        this.rotationCenter = center;
     }
 }

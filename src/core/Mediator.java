@@ -343,4 +343,12 @@ public class Mediator {
         }
         return ResizeHandle.NONE;
     }
+    
+    public boolean isRotateHandle(int x, int y) {
+        if (selectedDrawing != null && selectedDrawing.size() == 1) {
+            DrawingComponent d = selectedDrawing.get(0);
+            return d.isRotateHandle(x, y);
+        }
+        return false;
+    }
 }

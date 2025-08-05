@@ -1,6 +1,8 @@
 package drawing;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+
 import util.MyDashStroke;
 
 public class Myline extends MyDrawing {
@@ -20,6 +22,10 @@ public class Myline extends MyDrawing {
 
     public void draw(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
+        AffineTransform originalTransform = g2.getTransform();
+        Point center = new Point(getX() + getW()/2, getY() + getH()/2);
+
+        g2.rotate(getRotationAngle(), center.x, center.y);
         if (getIsDashed() == true)
             g2.setStroke(new MyDashStroke(getLineWidth(), getDashPattern()));
         else
@@ -37,7 +43,8 @@ public class Myline extends MyDrawing {
         // } catch (Exception e) {
         //     System.err.println("Error drawing region: " + e.getMessage());
         // }
-        
+
+        g2.setTransform(originalTransform);
         super.draw(g);
     }
     

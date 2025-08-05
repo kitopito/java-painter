@@ -1,6 +1,8 @@
 package drawing;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+
 import util.*;
 
 public class MyHendecagonal extends MyDrawing {
@@ -38,6 +40,10 @@ public class MyHendecagonal extends MyDrawing {
         int yPoints[] = points[1];
 
         Graphics2D g2 = (Graphics2D) g;
+        AffineTransform originalTransform = g2.getTransform();
+        Point center = new Point(x + w/2, y + h/2);
+        g2.rotate(getRotationAngle(), center.x, center.y);
+
         if (getHasShadow()) {
             int shadowX = x - getLineWidth() / 2 + 5;
             int shadowY = y - getLineWidth() / 2 + 5;
@@ -57,6 +63,7 @@ public class MyHendecagonal extends MyDrawing {
         g2.setColor(getLineColor());
         g2.drawPolygon(xPoints, yPoints, nPoints);
 
+        g2.setTransform(originalTransform);
         super.draw(g);
     }
     

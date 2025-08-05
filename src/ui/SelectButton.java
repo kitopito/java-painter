@@ -34,7 +34,7 @@ public class SelectButton extends JToggleButton {
     }
     
     enum Mode {
-        SELECT, RANGE_SELECT, MOVE, RESIZE
+        SELECT, RANGE_SELECT, MOVE, RESIZE, ROTATE
     }
     
     class SelectState implements State {
@@ -47,6 +47,8 @@ public class SelectButton extends JToggleButton {
         Vector<DrawingComponent> selectedDrawings = null;
         Rectangle originalBounds;
         
+        private double startAngle;
+        
         public SelectState(StateManager stateManager) {
             this.stateManager = stateManager;
         }
@@ -56,6 +58,15 @@ public class SelectButton extends JToggleButton {
             startY = y;
             preMouseX = x;
             preMouseY = y;
+
+            if (stateManager.isRotateHandle(x, y)) {
+                mode = Mode.ROTATE;
+                if (selectedDrawings != null && !selectedDrawings.isEmpty()) {
+                    DrawingComponent selected = selectedDrawings.get(0);
+                    startAngle = Math.atan2(y - selected.getRotationCenter().y, x - selected.getRotationCenter().x);
+                }
+                return;
+            }
 
             ResizeHandle resizeHandle = stateManager.getResizeHandle(x, y);
             System.err.println("Resize handle: " + resizeHandle);
@@ -102,13 +113,23 @@ public class SelectButton extends JToggleButton {
                 stateManager.moveSelectedDrawing(x - preMouseX, y - preMouseY);
             }
             else if(mode == Mode.RESIZE && resizeStrategy != null) {
-                int dx = x - preMouseX;
-                int dy = y - preMouseY;
                 resizeStrategy.resize(selectedDrawings.get(0), originalBounds, x - startX, y - startY);
+            }
+            else if(mode == Mode.ROTATE && selectedDrawings != null && !selectedDrawings.isEmpty()) {
+                DrawingComponent selected = selectedDrawings.get(0);
+                double currentAngle = Math.atan2(y - selected.getRotationCenter().y, x - selected.getRotationCenter().x);
+                double deltaAngle = currentAngle - startAngle;
+                
+                double newAngle = selected.getRotationAngle() + deltaAngle;
+                selected.setRotationAngle(newAngle);
+                
+                System.out.println("Rotating by: " + Math.toDegrees(deltaAngle) + " degrees");
+                stateManager.getMediator().repaint();
+                
+                startAngle = currentAngle;
             }
             preMouseX = x;
             preMouseY = y;
-
         }
     }
 }

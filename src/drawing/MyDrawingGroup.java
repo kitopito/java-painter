@@ -1,16 +1,21 @@
 package drawing;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.util.*;
 import core.*;
 
 public class MyDrawingGroup implements DrawingComponent {
+    // リサイズの誤差を無くすために最初の状態を保持
     private Vector<DrawingComponent> children;
     private Vector<DrawingComponent> initialChildren;
     private Rectangle initialBounds;
     private boolean isSelected;
     private int x, y, w, h;
-    private final int HANDLE_SIZE = 7;
+    private final int HANDLE_SIZE = 10;
+    
+    private double rotationAngle = 0.0;
+    private Point rotationCenter;
     
     // private Color groupLineColor;
     // private Color groupFillColor;
@@ -36,6 +41,7 @@ public class MyDrawingGroup implements DrawingComponent {
             addChild(component);
         }
         calculateBounds();
+        setRotationCenter();
         initialChildren = cloneChildren(children);
         initialBounds = new Rectangle(x, y, w, h);
         for(DrawingComponent child : initialChildren) {
@@ -44,6 +50,11 @@ public class MyDrawingGroup implements DrawingComponent {
     }
     
     public void draw(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        AffineTransform originalTransform = g2.getTransform();
+        Point center = new Point(x + w/2, y + h/2);
+        g2.rotate(getRotationAngle(), center.x, center.y);
+
         for (DrawingComponent child : children) {
             child.draw(g);
         }
@@ -51,6 +62,8 @@ public class MyDrawingGroup implements DrawingComponent {
         if (isSelected) {
             drawGroupSelectionBounds(g);
         }
+
+        g2.setTransform(originalTransform);
     }
     
     private void drawGroupSelectionBounds(Graphics g) {
@@ -70,6 +83,20 @@ public class MyDrawingGroup implements DrawingComponent {
             g.fillRect(handle[0] - HANDLE_SIZE/2, handle[1] - HANDLE_SIZE/2, 
                       HANDLE_SIZE, HANDLE_SIZE);
         }
+        
+        // 回転ハンドルを描画（上部中央から少し離れた位置）
+        int rotateHandleX = x + w / 2;
+        int rotateHandleY = y - 25; // 上部から25ピクセル離れた位置
+        
+        // 回転ハンドルへの線
+        g.setColor(Color.blue);
+        g.drawLine(x + w / 2, y, rotateHandleX, rotateHandleY);
+        
+        // 回転ハンドル（円形）
+        g.setColor(Color.blue);
+        g.fillOval(rotateHandleX - HANDLE_SIZE / 2, rotateHandleY - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
+        g.setColor(Color.white);
+        g.drawOval(rotateHandleX - HANDLE_SIZE / 2, rotateHandleY - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
     }
     
     public void move(int dx, int dy) {
@@ -81,6 +108,7 @@ public class MyDrawingGroup implements DrawingComponent {
         }
         x += dx;
         y += dy;
+        setRotationCenter();
     }
     
     public void setLocation(int x, int y) {
@@ -117,6 +145,7 @@ public class MyDrawingGroup implements DrawingComponent {
         
         this.w = w;
         this.h = h;
+        setRotationCenter();
     }
     
     private void calculateBounds() {
@@ -338,6 +367,50 @@ public class MyDrawingGroup implements DrawingComponent {
             }
         }
         return ResizeHandle.NONE;
+    }
+
+    public boolean isRotateHandle(int mouseX, int mouseY) {
+        if (!isSelected) return false;
+        
+        int originalHandleX = x + w / 2;
+        int originalHandleY = y - 25;
+        
+        Point center = rotationCenter != null ? rotationCenter : new Point(x + w/2, y + h/2);
+        
+        double rotatedHandleX = center.x + (originalHandleX - center.x) * Math.cos(rotationAngle) - (originalHandleY - center.y) * Math.sin(rotationAngle);
+        double rotatedHandleY = center.y + (originalHandleX - center.x) * Math.sin(rotationAngle) + (originalHandleY - center.y) * Math.cos(rotationAngle);
+        
+        double dx = mouseX - rotatedHandleX;
+        double dy = mouseY - rotatedHandleY;
+        double distance = Math.sqrt(dx * dx + dy * dy);
+        
+        return distance <= HANDLE_SIZE / 2;
+    }
+    
+    public double getRotationAngle() {
+        return rotationAngle;
+    }
+    
+    public void setRotationAngle(double angle) {
+        this.rotationAngle = angle;
+        // for (DrawingComponent child : children) {
+        //     child.setRotationAngle(angle);
+        // }
+        // for (DrawingComponent child : initialChildren) {
+        //     child.setRotationAngle(angle);
+        // }
+    }
+    
+    public Point getRotationCenter() {
+        return rotationCenter;
+    }
+    
+    public void setRotationCenter(Point center) {
+        this.rotationCenter = center;
+    }
+    
+    protected void setRotationCenter() {
+        rotationCenter = new Point(x + w / 2, y + h / 2);
     }
 
     private Vector<DrawingComponent> cloneChildren(Vector<DrawingComponent> children) {

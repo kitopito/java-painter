@@ -1,6 +1,8 @@
 package drawing;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+
 import util.MyDashStroke;
 
 public class MyRectangle extends MyDrawing {
@@ -24,6 +26,9 @@ public class MyRectangle extends MyDrawing {
         int h = getH();
 
         Graphics2D g2 = (Graphics2D) g;
+        AffineTransform originalTransform = g2.getTransform();
+        Point center = new Point(x + w/2, y + h/2);
+        g2.rotate(getRotationAngle(), center.x, center.y);
 
         if (getHasShadow()) {
             int shadowX = x - getLineWidth() / 2 + 5;
@@ -42,6 +47,7 @@ public class MyRectangle extends MyDrawing {
         g2.setColor(getLineColor());
         g2.drawRect(x, y, w, h);
 
+        g2.setTransform(originalTransform);
         super.draw(g);
     }
 }

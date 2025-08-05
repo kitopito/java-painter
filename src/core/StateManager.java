@@ -223,7 +223,10 @@ public class StateManager {
         return mediator.getResizeHandle(x, y);
     }
     
-    // 画像パス管理メソッド
+    public boolean isRotateHandle(int x, int y) {
+        return mediator.isRotateHandle(x, y);
+    }
+    
     public void setSelectedImagePath(String imagePath) {
         this.selectedImagePath = imagePath;
     }
