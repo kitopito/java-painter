@@ -2,10 +2,6 @@ package ui;
 
 import java.awt.*;
 import javax.swing.*;
-
-import org.w3c.dom.Text;
-
-import java.util.Vector;
 import core.*;
 
 public class PropertyPanel extends JPanel {
@@ -19,6 +15,7 @@ public class PropertyPanel extends JPanel {
     public static final String LINE_MODE = "LineMode";
     public static final String SELECT_MODE = "SelectMode";
     public static final String TEXT_MODE = "TextMode";
+    public static final String IMAGE_MODE = "ImageMode";
 
     JPanel rectPanel = new JPanel();
     JPanel ovalPanel = new JPanel();
@@ -26,6 +23,7 @@ public class PropertyPanel extends JPanel {
     JPanel linePanel = new JPanel();
     JPanel selectPanel = new JPanel();
     JPanel textPanel = new JPanel();
+    JPanel imagePanel = new JPanel();
 
     ShadowCheckBox shadowCheckBox;
     ColorChooserButton fillColorChooser;
@@ -55,6 +53,7 @@ public class PropertyPanel extends JPanel {
         this.add(linePanel, LINE_MODE);
         this.add(selectPanel, SELECT_MODE);
         this.add(textPanel, TEXT_MODE);
+        this.add(imagePanel, IMAGE_MODE);
     }
     
     public void setMode(String mode) {
@@ -77,6 +76,9 @@ public class PropertyPanel extends JPanel {
                 break;
             case TEXT_MODE:
                 createTextPanel();
+                break;
+            case IMAGE_MODE:
+                createImagePanel();
                 break;
             default:
                 break;
@@ -153,5 +155,59 @@ public class PropertyPanel extends JPanel {
         textPanel.add(lineColorChooser);
         textPanel.add(new JLabel("Text Size:"));
         textPanel.add(textSizeSpinner);
+    }
+    
+    public void createImagePanel() {
+        imagePanel.removeAll();
+        imagePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        
+        JButton selectImageButton = new JButton("画像選択");
+        selectImageButton.addActionListener(e -> selectImageFile());
+        imagePanel.add(selectImageButton);
+        
+        JLabel selectedImageLabel = new JLabel("画像未選択");
+        selectedImageLabel.setPreferredSize(new java.awt.Dimension(150, 25));
+        selectedImageLabel.setBorder(BorderFactory.createLoweredBevelBorder());
+        imagePanel.add(selectedImageLabel);
+        
+        imagePanel.add(shadowCheckBox);
+    }
+    
+    private void selectImageFile() {
+        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
+        fileChooser.setDialogTitle("画像ファイルを選択");
+        
+        // 画像ファイルのフィルターを設定
+        javax.swing.filechooser.FileNameExtensionFilter filter = 
+            new javax.swing.filechooser.FileNameExtensionFilter(
+                "画像ファイル (*.jpg, *.jpeg, *.png, *.gif, *.bmp)", 
+                "jpg", "jpeg", "png", "gif", "bmp");
+        fileChooser.setFileFilter(filter);
+        
+        int result = fileChooser.showOpenDialog(this);
+        if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
+            String imagePath = fileChooser.getSelectedFile().getAbsolutePath();
+            stateManager.setSelectedImagePath(imagePath);
+            
+            // 選択された画像のファイル名を表示
+            String fileName = fileChooser.getSelectedFile().getName();
+            Component[] components = imagePanel.getComponents();
+            for (Component comp : components) {
+                if (comp instanceof JLabel && 
+                    (((JLabel) comp).getText().equals("画像未選択") || 
+                     ((JLabel) comp).getText().endsWith(".jpg") ||
+                     ((JLabel) comp).getText().endsWith(".jpeg") ||
+                     ((JLabel) comp).getText().endsWith(".png") ||
+                     ((JLabel) comp).getText().endsWith(".gif") ||
+                     ((JLabel) comp).getText().endsWith(".bmp"))) {
+                    ((JLabel) comp).setText(fileName);
+                    ((JLabel) comp).setToolTipText(imagePath);
+                    break;
+                }
+            }
+            
+            imagePanel.revalidate();
+            imagePanel.repaint();
+        }
     }
 }

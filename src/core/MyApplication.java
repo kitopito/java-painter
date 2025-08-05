@@ -7,7 +7,6 @@ import java.awt.geom.*;
 import javax.swing.*;
 import drawing.*;
 import ui.*;
-import util.*;
 
 public class MyApplication extends JFrame {
     public MyApplication() {
@@ -47,6 +46,8 @@ public class MyApplication extends JFrame {
         shapePanel.add(lineButton);
         TextButton textButton = new TextButton(stateManager, propertyPanel);
         shapePanel.add(textButton);
+        ImageButton imageButton = new ImageButton(stateManager, propertyPanel);
+        shapePanel.add(imageButton);
         SelectButton selectButton = new SelectButton(stateManager, propertyPanel);
         shapePanel.add(selectButton);
         
@@ -57,6 +58,7 @@ public class MyApplication extends JFrame {
         shapeButtonGroup.add(lineButton);
         shapeButtonGroup.add(textButton);
         shapeButtonGroup.add(selectButton);
+        shapeButtonGroup.add(imageButton);
 
         //JPanel linePanel = new JPanel();
         //linePanel.setLayout(new BoxLayout(linePanel, BoxLayout.Y_AXIS));
@@ -140,24 +142,51 @@ public class MyApplication extends JFrame {
         }
 
         public void mousePressed(MouseEvent e) {
+            // DPI診断情報を追加
+            GraphicsConfiguration gc = canvas.getGraphicsConfiguration();
+            AffineTransform defaultTransform = gc.getDefaultTransform();
+            System.out.println("DPI Scale X: " + defaultTransform.getScaleX());
+            System.out.println("DPI Scale Y: " + defaultTransform.getScaleY());
+            System.out.println("DPI Translate : " + defaultTransform.getTranslateX() + ", " + defaultTransform.getTranslateY());
+            System.out.println("Canvas size: " + canvas.getWidth() + "x" + canvas.getHeight());
+            System.out.println("Canvas bounds: " + canvas.getBounds());
+            
+            // マウス座標の詳細確認
+            Point canvasLocationOnScreen = canvas.getLocationOnScreen();
+            Point frameLocationOnScreen = MyApplication.this.getLocationOnScreen();
+            System.out.println("Canvas location on screen: " + canvasLocationOnScreen);
+            System.out.println("Frame location on screen: " + frameLocationOnScreen);
+            System.out.println("Mouse event source: " + e.getSource().getClass().getName());
+            
+            Point logicalPoint = zoomManager.getTransformedCoordinates(e.getX(), e.getY(), canvas);
+            logicalX = logicalPoint.x;
+            logicalY = logicalPoint.y;
+            System.out.println("Logical coordinates: " + logicalX + ", " + logicalY);
+            System.out.println("screen coordinates: " + e.getX() + ", " + e.getY());
+            System.out.println("transformed : " + zoomManager.getTranslateX() + ", " + zoomManager.getTranslateY());
             canvas.requestFocusInWindow();
             if(SwingUtilities.isRightMouseButton(e) == false) {
-                stateManager.mouseDown(e.getX(), e.getY());
+                stateManager.mouseDown(logicalX, logicalY);
             } else {
                 MyRectangle zoomRect = zoomManager.getZoomRect();
-                zoomRect.setLocation(e.getX(), e.getY());
+                zoomRect.setLocation(logicalX, logicalY);
                 zoomRect.setSize(0, 0);
-                zoomManager.setDragStart(e.getX(), e.getY());
+                zoomManager.setDragStart(logicalX, logicalY);
                 canvas.getMediator().addDrawing(zoomRect);
                 canvas.repaint();
+                System.out.println("Zoom rectangle created at: " + zoomRect.getX() + ", " + zoomRect.getY());
             }
         }
 
         public void mouseReleased(MouseEvent e) {
+            Point logicalPoint = zoomManager.getTransformedCoordinates(e.getX(), e.getY(), canvas);
+            logicalX = logicalPoint.x;
+            logicalY = logicalPoint.y;
+
             canvas.requestFocusInWindow();
             if(SwingUtilities.isRightMouseButton(e) == false) {
                 System.out.println("mouse released");
-                stateManager.mouseUP(e.getX(), e.getY());
+                stateManager.mouseUP(logicalX, logicalY);
             } else {
                 MyRectangle zoomRect = zoomManager.getZoomRect();
                 System.out.println("Zoom rectangle color: " + zoomRect.getFillColor());
@@ -168,16 +197,16 @@ public class MyApplication extends JFrame {
             }
         }
         
-        private void calcLogicalCoordinates(MouseEvent e) {
-            AffineTransform transform = zoomManager.getTransform();
-            try {
-                Point2D logicalPoint = transform.inverseTransform(new Point2D.Double(e.getX(), e.getY()), null);
-                logicalX = (int) logicalPoint.getX();
-                logicalY = (int) logicalPoint.getY();
-            } catch (NoninvertibleTransformException ex) {
-                System.err.println("Error calculating logical coordinates: " + ex.getMessage());
-            }
-        }
+        // private void calcLogicalCoordinates(MouseEvent e) {
+        //     AffineTransform transform = zoomManager.getTransform();
+        //     try {
+        //         Point2D logicalPoint = transform.inverseTransform(new Point2D.Double(e.getX(), e.getY()), null);
+        //         logicalX = (int) logicalPoint.getX();
+        //         logicalY = (int) logicalPoint.getY();
+        //     } catch (NoninvertibleTransformException ex) {
+        //         System.err.println("Error calculating logical coordinates: " + ex.getMessage());
+        //     }
+        // }
     }
     
     class CanvasMouseMotionListener extends MouseMotionAdapter {
@@ -192,13 +221,15 @@ public class MyApplication extends JFrame {
         }
 
         public void mouseDragged(MouseEvent e) {
+            int logicalX = zoomManager.getTransformedCoordinates(e.getX(), e.getY(), canvas).x;
+            int logicalY = zoomManager.getTransformedCoordinates(e.getX(), e.getY(), canvas).y;
             canvas.requestFocusInWindow();
             if(SwingUtilities.isRightMouseButton(e) == false) {
-                stateManager.mouseDrag(e.getX(), e.getY());
+                stateManager.mouseDrag(logicalX, logicalY);
             } else {
                 MyRectangle zoomRect = zoomManager.getZoomRect();
                 zoomRect.setLocation(zoomManager.getDragStartX(), zoomManager.getDragStartY());
-                zoomRect.setSize(e.getX() - zoomRect.getX(), e.getY() - zoomRect.getY());
+                zoomRect.setSize(logicalX - zoomManager.getDragStartX(), logicalY - zoomManager.getDragStartY());
                 canvas.repaint();
             }
         }

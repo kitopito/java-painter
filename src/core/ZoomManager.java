@@ -97,4 +97,34 @@ public class ZoomManager {
         this.dragStartX = x;
         this.dragStartY = y;
     }
+
+    public Point getTransformedCoordinates(int screenX, int screenY, Component canvas) {
+        // DPIスケールを取得
+        GraphicsConfiguration gc = canvas.getGraphicsConfiguration();
+        AffineTransform defaultTransform = gc.getDefaultTransform();
+        double dpiScaleX = defaultTransform.getScaleX();
+        double dpiScaleY = defaultTransform.getScaleY();
+        
+        // デバッグ情報を出力
+        System.out.println("Original screen coordinates: " + screenX + ", " + screenY);
+        System.out.println("DPI scales: " + dpiScaleX + ", " + dpiScaleY);
+        
+        // DPIスケールを考慮して座標変換
+        double adjustedX = screenX / dpiScaleX;
+        double adjustedY = screenY / dpiScaleY;
+        System.out.println("DPI adjusted coordinates: " + adjustedX + ", " + adjustedY);
+        
+        double worldX = (adjustedX - translateX) / scale;
+        double worldY = (adjustedY - translateY) / scale;
+        System.out.println("Final world coordinates: " + worldX + ", " + worldY);
+        System.out.println("Zoom parameters - translateX: " + translateX + ", translateY: " + translateY + ", scale: " + scale);
+        
+        return new Point((int) worldX, (int) worldY);
+    }
+    
+    public Point getTransformedCoordinates(int screenX, int screenY) {
+        double worldX = (screenX - translateX) / scale;
+        double worldY = (screenY - translateY) / scale;
+        return new Point((int) worldX, (int) worldY);
+    }
 }

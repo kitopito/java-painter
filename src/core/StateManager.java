@@ -19,6 +19,7 @@ public class StateManager {
     private Color fillColor = Color.BLACK;
     private Color lineColor = Color.BLACK;
     private List<SelectionListener> selectionListeners = new ArrayList<>();
+    private String selectedImagePath = null;  // 選択された画像パス
     private int textSize = 12;
     private Font textFont = new Font("SansSerif", Font.PLAIN, textSize);
 
@@ -220,5 +221,14 @@ public class StateManager {
     
     public ResizeHandle getResizeHandle(int x, int y) {
         return mediator.getResizeHandle(x, y);
+    }
+    
+    // 画像パス管理メソッド
+    public void setSelectedImagePath(String imagePath) {
+        this.selectedImagePath = imagePath;
+    }
+    
+    public String getSelectedImagePath() {
+        return selectedImagePath;
     }
 }
