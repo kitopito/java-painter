@@ -75,51 +75,32 @@ public class MyApplication extends JFrame {
 
         stateManager.addSelectionListener(new SelectionListener() {
             public void onSelectionChanged(DrawingComponent selectedDrawing) {
-                System.out.println("*************************************");
-                System.out.println("fill color" + selectedDrawing.getFillColor());
-                System.out.println("line color" + selectedDrawing.getLineColor());
-                System.out.println("line width " + selectedDrawing.getLineWidth());
-                System.out.println("shadow " + selectedDrawing.getHasShadow());
-                System.out.println("dashed " + selectedDrawing.getIsDashed());
-                System.out.println("*************************************");
-                shadowCheckbox.setSelected(selectedDrawing.getHasShadow());
-                dashCheckBox.setSelected(selectedDrawing.getIsDashed());
-                dashList.setSelectedItem(dashList.toString(selectedDrawing.getDashPattern()));
+                // System.out.println("*************************************");
+                // System.out.println("fill color" + selectedDrawing.getFillColor());
+                // System.out.println("line color" + selectedDrawing.getLineColor());
+                // System.out.println("line width " + selectedDrawing.getLineWidth());
+                // System.out.println("shadow " + selectedDrawing.getHasShadow());
+                // System.out.println("dashed " + selectedDrawing.getIsDashed());
+                // System.out.println("*************************************");
+                // shadowCheckbox.setSelected(selectedDrawing.getHasShadow());
+                // dashCheckBox.setSelected(selectedDrawing.getIsDashed());
+                // dashList.setSelectedItem(dashList.toString(selectedDrawing.getDashPattern()));
 
-                fillColorChooser.setIgnoreActionEvent(true);
-                lineColorChooser.setIgnoreActionEvent(true);
-                fillColorChooser.setSelectedItem(selectedDrawing.getFillColor());
-                lineColorChooser.setSelectedItem(selectedDrawing.getLineColor());
-                fillColorChooser.setIgnoreActionEvent(false);
-                lineColorChooser.setIgnoreActionEvent(false);
+                // fillColorChooser.setIgnoreActionEvent(true);
+                // lineColorChooser.setIgnoreActionEvent(true);
+                // fillColorChooser.setSelectedItem(selectedDrawing.getFillColor());
+                // lineColorChooser.setSelectedItem(selectedDrawing.getLineColor());
+                // fillColorChooser.setIgnoreActionEvent(false);
+                // lineColorChooser.setIgnoreActionEvent(false);
 
-                lineWidthSpinner.setValue(selectedDrawing.getLineWidth());
+                // lineWidthSpinner.setValue(selectedDrawing.getLineWidth());
             }
         });
 
         canvas.addMouseListener(new CanvasMouseListener(canvas, stateManager));
 
         canvas.addMouseMotionListener(new CanvasMouseMotionListener(canvas, stateManager));
-        canvas.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-                    stateManager.deleteKeyPressed();
-                }
-                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_C) {
-                    stateManager.copyKeyPressed();
-                }
-                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_X) {
-                    stateManager.cutKeyPressed();
-                }
-                if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_V) {
-                    stateManager.pasteKeyPressed();
-                }
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    canvas.getZoomManager().resetZoom();
-                    canvas.repaint();
-                }
-            }
-        });
+        canvas.addKeyListener(new CanvasKeyListener(stateManager, canvas));
 
         this.addWindowListener(
                 new WindowAdapter() {
@@ -127,6 +108,35 @@ public class MyApplication extends JFrame {
                         System.exit(1);
                     }
                 });
+    }
+    
+    class CanvasKeyListener extends KeyAdapter {
+        private StateManager stateManager;
+        private MyCanvas canvas;
+
+        CanvasKeyListener(StateManager stateManager, MyCanvas canvas) {
+            this.stateManager = stateManager;
+            this.canvas = canvas;
+        }
+
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                stateManager.deleteKeyPressed();
+            }
+            if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_C) {
+                stateManager.copyKeyPressed();
+            }
+            if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_X) {
+                stateManager.cutKeyPressed();
+            }
+            if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_V) {
+                stateManager.pasteKeyPressed();
+            }
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                canvas.getZoomManager().resetZoom();
+                canvas.repaint();
+            }
+        }
     }
     
     class CanvasMouseListener extends MouseAdapter {

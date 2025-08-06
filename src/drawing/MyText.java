@@ -27,6 +27,9 @@ public class MyText extends MyDrawing {
     
     public void draw(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
+        AffineTransform originalTransform = g2.getTransform();
+        Point center = new Point(getX() + getW()/2, getY() + getH()/2);
+        g2.rotate(getRotationAngle(), center.x, center.y);
         
         g2.setFont(font);
         FontMetrics fm = g2.getFontMetrics();
@@ -35,7 +38,8 @@ public class MyText extends MyDrawing {
         g2.setColor(getLineColor());
         g2.drawString(text, getX(), getY() + fm.getAscent());
         
-        super.draw(g);
+        drawHandles(g2);
+        g2.setTransform(originalTransform);
     }
     
     protected Shape createRegion() {

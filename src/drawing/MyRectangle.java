@@ -46,8 +46,8 @@ public class MyRectangle extends MyDrawing {
         g2.fillRect(x, y, w, h);
         g2.setColor(getLineColor());
         g2.drawRect(x, y, w, h);
+        drawHandles(g2);
 
         g2.setTransform(originalTransform);
-        super.draw(g);
     }
 }

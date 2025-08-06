@@ -16,7 +16,7 @@ public class MyDrawing implements DrawingComponent {
     private int multiLineCount = 1;
     private boolean isSelected;
     private Shape region;
-    final int HANDLE_SIZE = 10; // ハンドルサイズを大きく
+    final int HANDLE_SIZE = 10;
     
     // 回転関連の変数
     private double rotationAngle = 0.0;

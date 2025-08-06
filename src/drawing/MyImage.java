@@ -10,7 +10,7 @@ import util.MyDashStroke;
 
 public class MyImage extends MyDrawing {
     private transient BufferedImage image;  // transientでシリアライゼーション対象外
-    private String imagePath;  // 画像ファイルのパスを保存
+    private String imagePath;
     
     public MyImage(String imagePath, int x, int y, int w, int h, Color lineColor, Color fillColor, int lineWidth) {
         super(x, y, w, h, lineColor, fillColor, lineWidth);
@@ -29,7 +29,6 @@ public class MyImage extends MyDrawing {
         this.imagePath = imagePath;
         setLocation(x, y);
         loadImage();
-        // 画像の元サイズを設定
         if (image != null) {
             setSize(image.getWidth(), image.getHeight());
         }
@@ -75,11 +74,7 @@ public class MyImage extends MyDrawing {
         int h = getH();
         
         Graphics2D g2 = (Graphics2D) g;
-        AffineTransform originalTransform = g2.getTransform();
-        Point center = new Point(x + w/2, y + h/2);
-        g2.rotate(getRotationAngle(), center.x, center.y);
         
-        // 影の描画
         if (getHasShadow()) {
             int shadowX = x + 5;
             int shadowY = y + 5;
@@ -87,19 +82,15 @@ public class MyImage extends MyDrawing {
             g2.fillRect(shadowX, shadowY, w, h);
         }
         
-        // 画像の描画
         if (image != null) {
             g2.drawImage(image, x, y, w, h, null);
         } else {
-            // 画像が読み込めない場合の代替表示
             g2.setColor(Color.lightGray);
             g2.fillRect(x, y, w, h);
             g2.setColor(Color.black);
             g2.drawString("画像なし", x + 5, y + 15);
         }
-        
-        g2.setTransform(originalTransform);
-        super.draw(g);
+        drawHandles(g2);
     }
     
     public String getImagePath() {

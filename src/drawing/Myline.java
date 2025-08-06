@@ -24,8 +24,8 @@ public class Myline extends MyDrawing {
         Graphics2D g2 = (Graphics2D) g;
         AffineTransform originalTransform = g2.getTransform();
         Point center = new Point(getX() + getW()/2, getY() + getH()/2);
-
         g2.rotate(getRotationAngle(), center.x, center.y);
+
         if (getIsDashed() == true)
             g2.setStroke(new MyDashStroke(getLineWidth(), getDashPattern()));
         else
@@ -37,6 +37,7 @@ public class Myline extends MyDrawing {
         }
         g2.setColor(getLineColor());
         g2.drawLine(this.x1, this.y1, this.x2, this.y2);
+        drawHandles(g2);
         
         // try {
         //     g2.drawPolygon((Polygon)createRegion());;
@@ -45,7 +46,6 @@ public class Myline extends MyDrawing {
         // }
 
         g2.setTransform(originalTransform);
-        super.draw(g);
     }
     
     public int getX() {

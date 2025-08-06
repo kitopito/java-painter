@@ -62,9 +62,9 @@ public class MyHendecagonal extends MyDrawing {
         g2.fillPolygon(xPoints, yPoints, nPoints);
         g2.setColor(getLineColor());
         g2.drawPolygon(xPoints, yPoints, nPoints);
+        drawHandles(g2);
 
         g2.setTransform(originalTransform);
-        super.draw(g);
     }
     
     protected Shape createRegion() {

@@ -1,7 +1,10 @@
 package ui;
 
 import java.awt.*;
+import java.io.File;
+
 import javax.swing.*;
+import javax.swing.filechooser.*;
 import core.*;
 
 public class PropertyPanel extends JPanel {
@@ -84,6 +87,7 @@ public class PropertyPanel extends JPanel {
                 break;
         }
         cardLayout.show(this, mode);
+        stateManager.getMediator().repaint();
     }
     
     private void createRectPanel() {
@@ -165,7 +169,13 @@ public class PropertyPanel extends JPanel {
         selectImageButton.addActionListener(e -> selectImageFile());
         imagePanel.add(selectImageButton);
         
-        JLabel selectedImageLabel = new JLabel("画像未選択");
+        JLabel selectedImageLabel;
+        if(stateManager.getSelectedImagePath() != null) {
+            String[] fileName = stateManager.getSelectedImagePath().split(File.separator);
+            selectedImageLabel = new JLabel(fileName[fileName.length - 1]);
+        } else {
+            selectedImageLabel = new JLabel("画像未選択");
+        }
         selectedImageLabel.setPreferredSize(new java.awt.Dimension(150, 25));
         selectedImageLabel.setBorder(BorderFactory.createLoweredBevelBorder());
         imagePanel.add(selectedImageLabel);
@@ -174,14 +184,14 @@ public class PropertyPanel extends JPanel {
     }
     
     private void selectImageFile() {
-        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
+        JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("画像ファイルを選択");
         
         // 画像ファイルのフィルターを設定
-        javax.swing.filechooser.FileNameExtensionFilter filter = 
-            new javax.swing.filechooser.FileNameExtensionFilter(
-                "画像ファイル (*.jpg, *.jpeg, *.png, *.gif, *.bmp)", 
-                "jpg", "jpeg", "png", "gif", "bmp");
+        FileNameExtensionFilter filter = 
+            new FileNameExtensionFilter(
+                "画像ファイル (*.jpg, *.jpeg, *.png)", 
+                "jpg", "jpeg", "png");
         fileChooser.setFileFilter(filter);
         
         int result = fileChooser.showOpenDialog(this);
@@ -197,9 +207,7 @@ public class PropertyPanel extends JPanel {
                     (((JLabel) comp).getText().equals("画像未選択") || 
                      ((JLabel) comp).getText().endsWith(".jpg") ||
                      ((JLabel) comp).getText().endsWith(".jpeg") ||
-                     ((JLabel) comp).getText().endsWith(".png") ||
-                     ((JLabel) comp).getText().endsWith(".gif") ||
-                     ((JLabel) comp).getText().endsWith(".bmp"))) {
+                     ((JLabel) comp).getText().endsWith(".png"))) {
                     ((JLabel) comp).setText(fileName);
                     ((JLabel) comp).setToolTipText(imagePath);
                     break;

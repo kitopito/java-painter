@@ -3,6 +3,7 @@ package core;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import drawing.*;
+import ui.MyCanvas;
 
 public class ZoomManager {
     private double scale = 1.0;
@@ -11,8 +12,10 @@ public class ZoomManager {
     private final double minZoom = 1.0;
     private MyRectangle zoomRect = new MyRectangle(0, 0, 0, 0);
     private int dragStartX, dragStartY;
-    
-    public ZoomManager() {
+    private MyCanvas canvas;
+
+    public ZoomManager(MyCanvas canvas) {
+        this.canvas = canvas;
         zoomRect.setLineColor(Color.MAGENTA);
         zoomRect.setFillColor(new Color(0, 0, 0, 0));
         zoomRect.setIsDashed(true);
@@ -99,27 +102,29 @@ public class ZoomManager {
     }
 
     public Point getTransformedCoordinates(int screenX, int screenY, Component canvas) {
-        // DPIスケールを取得
-        GraphicsConfiguration gc = canvas.getGraphicsConfiguration();
-        AffineTransform defaultTransform = gc.getDefaultTransform();
-        double dpiScaleX = defaultTransform.getScaleX();
-        double dpiScaleY = defaultTransform.getScaleY();
+        return getTransformedCoordinates(screenX, screenY);
+
+        // // DPIスケールを取得
+        // GraphicsConfiguration gc = canvas.getGraphicsConfiguration();
+        // AffineTransform defaultTransform = gc.getDefaultTransform();
+        // double dpiScaleX = defaultTransform.getScaleX();
+        // double dpiScaleY = defaultTransform.getScaleY();
         
-        // デバッグ情報を出力
-        System.out.println("Original screen coordinates: " + screenX + ", " + screenY);
-        System.out.println("DPI scales: " + dpiScaleX + ", " + dpiScaleY);
+        // // デバッグ情報を出力
+        // System.out.println("Original screen coordinates: " + screenX + ", " + screenY);
+        // System.out.println("DPI scales: " + dpiScaleX + ", " + dpiScaleY);
         
-        // DPIスケールを考慮して座標変換
-        double adjustedX = screenX / dpiScaleX;
-        double adjustedY = screenY / dpiScaleY;
-        System.out.println("DPI adjusted coordinates: " + adjustedX + ", " + adjustedY);
+        // // DPIスケールを考慮して座標変換
+        // double adjustedX = screenX / dpiScaleX;
+        // double adjustedY = screenY / dpiScaleY;
+        // System.out.println("DPI adjusted coordinates: " + adjustedX + ", " + adjustedY);
         
-        double worldX = (adjustedX - translateX) / scale;
-        double worldY = (adjustedY - translateY) / scale;
-        System.out.println("Final world coordinates: " + worldX + ", " + worldY);
-        System.out.println("Zoom parameters - translateX: " + translateX + ", translateY: " + translateY + ", scale: " + scale);
+        // double worldX = (adjustedX - translateX) / scale;
+        // double worldY = (adjustedY - translateY) / scale;
+        // System.out.println("Final world coordinates: " + worldX + ", " + worldY);
+        // System.out.println("Zoom parameters - translateX: " + translateX + ", translateY: " + translateY + ", scale: " + scale);
         
-        return new Point((int) worldX, (int) worldY);
+        // return new Point((int) worldX, (int) worldY);
     }
     
     public Point getTransformedCoordinates(int screenX, int screenY) {

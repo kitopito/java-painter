@@ -2,6 +2,8 @@ package ui;
 
 import java.util.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+
 import javax.swing.*;
 import core.*;
 import drawing.*;
@@ -12,7 +14,7 @@ public class MyCanvas extends JPanel {
 
     public MyCanvas() {
         this.mediator = new Mediator(this);
-        this.zoomManager = new ZoomManager();
+        this.zoomManager = new ZoomManager(this);
         setBackground(Color.white);
     }
     
@@ -28,6 +30,7 @@ public class MyCanvas extends JPanel {
         Graphics2D g2d = (Graphics2D) g;
         super.paint(g2d); //これの場所大事　setTransformの後に書いたらバグった
 
+        AffineTransform originalTransform = g2d.getTransform();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setTransform(zoomManager.getTransform());
         // System.out.println("Painting canvas with zoom level: " + zoomManager.getTransform().getScaleX());
@@ -37,5 +40,7 @@ public class MyCanvas extends JPanel {
             DrawingComponent d = e.nextElement();
             d.draw(g2d);
         }
+        g2d.setTransform(originalTransform);
+        // System.out.println("originalTransform: " + originalTransform);
     }
 }

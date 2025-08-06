@@ -40,9 +40,9 @@ public class MyOval extends MyDrawing {
         g2.fillOval(x, y, w, h);
         g2.setColor(getLineColor());
         g2.drawOval(x, y, w, h);
+        drawHandles(g2);
 
         g2.setTransform(originalTransform);
-        super.draw(g);
     }
 
     protected Shape createRegion() {
